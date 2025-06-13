@@ -10,11 +10,11 @@ To install all the required modules use the following code:
 
 After installing the requirements run the scraper with:
 ```
-python3 iptv_scraper.py
+python3 iptv_scraper.py CHANNEL_NAME --pages 2
 ```
 
 # ✔️New Update
-* Now you can search for specific channel for scraping!
+* Uses command line arguments for channel and number of pages
 
 # 📷Screenshots
 ![Commands](https://user-images.githubusercontent.com/68910039/94121617-65d5f100-fe06-11ea-9c3e-5f3add2e20c9.png)

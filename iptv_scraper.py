@@ -5,6 +5,7 @@ The script fetches IPTV links from ``streamtest.in`` and writes them to an
 pagination limits from the upstream website.
 """
 
+import argparse
 import datetime
 from typing import List
 
@@ -14,46 +15,63 @@ from art import text2art
 from colorama import init
 from termcolor import colored
 
-scraped_links: List[str] = []
 
-
-def create_m3u(fname: str) -> None:
-    """Write scraped links to an ``m3u`` file."""
+def create_m3u(links: List[str], fname: str) -> str:
+    """Write scraped ``links`` to an ``m3u`` file and return its path."""
     timestamp = datetime.datetime.now().strftime("%d-%m-%Y %I-%M-%S-%p")
+    out_file = f"{timestamp} {fname.upper()}.m3u"
     print("[*]Creating m3u file..........")
-    with open(f"{timestamp} {fname.upper()}.m3u", "a", encoding="utf-8") as m3u_creator:
-        for link in scraped_links:
+    with open(out_file, "w", encoding="utf-8") as m3u_creator:
+        for link in links:
             m3u_creator.write(f"{link}\n")
     print("[*]Created m3u File!")
+    return out_file
 
 
-def fetch_links(pages: int, name: str) -> None:
+def fetch_links(pages: int, name: str) -> List[str]:
     """Scrape links from ``streamtest.in``."""
-    page_no = 1
-    for _ in range(pages):
+    scraped_links: List[str] = []
+    session = requests.Session()
+    headers = {"User-Agent": "Mozilla/5.0"}
+    for page_no in range(1, pages + 1):
         print(f"{page_no}/{pages}")
         url = (
             f"https://streamtest.in/logs/page/{page_no}?"
             f"filter={name}&is_public=true"
         )
-        response = requests.get(url, timeout=10)
+        try:
+            response = session.get(url, timeout=10, headers=headers)
+            response.raise_for_status()
+        except requests.RequestException as exc:
+            print(f"Request failed: {exc}")
+            continue
         soup = BeautifulSoup(response.text, "html.parser")
         results = soup.find_all(
             "p", class_="line-clamp-3 hover:line-clamp-10"
         )
         for link in results:
             scraped_links.append(link.text.strip())
-        page_no += 1
+    return scraped_links
 
 
-if __name__ == "__main__":
+def main() -> None:
+    """CLI entry point."""
     init()
+    parser = argparse.ArgumentParser(description="Scrape IPTV links")
+    parser.add_argument("channel", help="Channel to search for")
+    parser.add_argument(
+        "-p", "--pages", type=int, default=1, help="Number of pages to scrape"
+    )
+    args = parser.parse_args()
+
     art = text2art("IPTV Scraper")
     print(colored(art, "cyan"))
     print(colored("Developed By Henry Richard J", "blue"))
 
-    channel_name = input("Channel to search: ")
-    pages_to_scrape = int(input("How many pages to scrape: "))
+    links = fetch_links(args.pages, args.channel)
+    if links:
+        create_m3u(links, args.channel)
 
-    fetch_links(pages_to_scrape, channel_name)
-    create_m3u(channel_name)
+
+if __name__ == "__main__":
+    main()

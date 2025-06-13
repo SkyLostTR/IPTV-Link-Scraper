@@ -29,10 +29,10 @@ def random_iptv(no, name):
         url = f"https://streamtest.in/logs/page/{str(page_no)}?filter={name}&is_public=true"
         result = requests.get(url).text
         soup = BeautifulSoup(result, "html.parser")
-        scraped_links = soup.find_all('div', {'class': 'url is-size-6'})
+        scraped_links = soup.find_all('p', class_='line-clamp-3 hover:line-clamp-10')
 
         for link in scraped_links:
-            Scraped_Links.append(link.text)
+            Scraped_Links.append(link.text.strip())
 
         page_no = page_no + 1
 

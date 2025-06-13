@@ -8,6 +8,11 @@ To install all the required modules use the following code:
 <br/>
 <b>pip install -r requirements.txt</b>
 
+After installing the requirements run the scraper with:
+```
+python3 iptv_scraper.py
+```
+
 # ✔️New Update
 * Now you can search for specific channel for scraping!
 
